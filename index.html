@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width" />
+	<title>simon: test your memory</title>
+	<link rel="stylesheet" type="text/css" href="css/base.css">
+	<!--[if lt IE 9]>
+		<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+</head>
+<body>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script src="js/lib/jquery.touchToClick.js"></script>
+	<script src="js/lib/jquery.animateColors.js"></script>
+	<script src="js/lib/fireworks.js"></script>
+	<script src="js/lib/store.js"></script>
+	<script src="js/simon.js"></script>
+	<div id="option-list">
+		<label id="shuffle-label" class="highlight"><input type="checkbox" id="shuffle" /> Enable shuffle mode<p>At the start of each new level the colors get shuffled to a random position.</p></label>
+		<label id="rotate-label" class="highlight"><input type="checkbox" id="rotate" /> Enable rotate mode<p>The game board will rotate around as you play. This might not work properly in IE or mobile devices.</p></label>
+		<label id="distract-label" class="highlight"><input type="checkbox" id="distract" /> Enable distract mode<p>Various screen altering effects will randomly attempt to distract you.</p></label>
+	</div>
+	<div id="scoreboard">
+		<p id="scoreboard-empty"></p>
+		<table id="scoreboard-display">
+			<thead>
+			<tr>
+				<th class="entry-when">when</th>
+				<th class="entry-level">level</th>
+				<th class="entry-modes">modes</th>
+			</tr>
+			</thead>
+			<tbody>
+			</tbody>
+		</table>
+		<a href="#" id="scoreboard-clear">clear the scoreboard</a>
+	</div>	
+	<div id="game-background">
+		<ul id="colors">
+			<li id="0" class="dim shape green"></li>
+			<li id="1" class="dim shape red"></li>
+			<li id="2" class="dim shape yellow"></li>
+			<li id="3" class="dim shape blue"></li>
+			<li id="4" class="dim shape purple"></li>
+			<li id="5" class="dim shape orange"></li>
+		</ul>
+	</div>
+	<div id="buttons"><button id="start">new game</button> <button id="options">options</button> <button id="top5">top 5</button></div>
+	<p id="distraction-troll-face">move your mouse!</p>
+	<h3 id="level" class="hidden">Level: <span id="points" class="highlight">1</span></h3>
+	<p id="directions">Not sure how to play? After starting the game it will randomly highlight one of the colors, your job is to click that color.<br /><br />
+	Each time you get the correct answer a new color will be added to the sequence.</p>
+	<img id="distraction-nyancat" src="images/distractions/nyancat.gif" alt="Nyan cat" width="301" height="119" />
+	<img id="distraction-genius" src="images/distractions/genius.png" alt="Genius" width="164" height="157" />
+	<img id="distraction-jackie-chan" src="images/distractions/jackie-chan.png" alt="Jackie Chan" width="298" height="181" />
+	<div id="fireworks-template"><div id="fw" class="firework"></div><div id="fp" class="fireworkParticle"><img src="images/fireworks/particles.gif" alt="" /></div></div><div id="fireContainer"></div>
+</body>
+</html>
