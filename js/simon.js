@@ -559,7 +559,6 @@ $(document).ready(function() {
 			mode.shuffle = modes[0] === 'true';
 			mode.rotate = modes[1] === 'true';
 			mode.distract = modes[2] === 'true';
-			console.log(mode);
 
 			// Setup the seed.
 			state.seed = seed;
