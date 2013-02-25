@@ -217,7 +217,6 @@ $(document).ready(function() {
 			}
 
 			// Set an interval for distractions to play while the game is running if it's enabled.
-			// Have to do the extra && distractions because IE8 is apparently a piece of garbage?
 			if (mode.distract && distractions && !distractions.playing) {
 				mode.distractId = setInterval(function() {
 					if (shouldDistract() ) {
@@ -232,6 +231,7 @@ $(document).ready(function() {
 			state.turn = 0;
 			state.replayProgress = 0;
 			updateTimeScale(1); // This just resets the time scaling back to normal.
+
 			replayToCurrentLevel();
 		}
 
@@ -515,6 +515,74 @@ $(document).ready(function() {
 
 		/*
 		**************************************************************
+		Share game
+		**************************************************************
+		*/
+
+		function setGameState() {
+			// By default it has not been played by the URL.
+			state.playedFromURL = false;
+
+			// Setup to require the url params are good.
+			var level = urlParam('level');
+			var modes = urlParam('modes').split(",");
+			var seed = urlParam('seed');
+
+			// Make sure the level is legit and we have exactly 3 modes.
+			if (!positiveInt(level) || modes.length !== 3) {
+				return;
+			}
+
+			// Make sure each mode is true or false strings.
+			for (var v in modes) {
+				if (modes[v] === 'true' || modes[v] === 'false') {
+					// Move onto the next iteration.
+					continue;
+				}
+				else {
+					// At least one of them is bad.
+					return;
+				}
+			}
+
+			// Our url params are good, so let's use them.
+			if (level >= state.levelMax) {
+				state.levelMax = level;
+			}
+
+			// Set the level and starting level.
+			state.level = level;
+			state.levelStart = level;
+
+			// Setup the modes.
+			// In javascript any string with > 0 length is true, so we have to do a strict compare to 'true'.
+			mode.shuffle = modes[0] === 'true';
+			mode.rotate = modes[1] === 'true';
+			mode.distract = modes[2] === 'true';
+			console.log(mode);
+
+			// Setup the seed.
+			state.seed = seed;
+
+			// The game was launched by url.
+			// We use this variable to do some extra things at the end of the game as well as skip adding
+			// this game to the scoreboard when it finishes.
+			state.playedFromURL = true;
+
+			// Start the game automatically.
+			startGame();
+		}
+
+		// Add the last played game's state to the share input text box.
+		function setShareGame () {
+			// We want to play back from the level - 1 because that is the level they completed.
+			var val = 'http://nickjj.github.com/simon?level=' + (state.level - 1) + '&modes=' + mode.shuffle + ',' + mode.rotate + ',' + mode.distract + '&seed=' + state.seed;
+
+			$('#share-game').val(val);
+		}
+
+		/*
+		**************************************************************
 		Distractions
 		**************************************************************
 		*/
@@ -524,7 +592,7 @@ $(document).ready(function() {
 			playing: false, // Keep track if a distraction is playing or not, we don't want to overlap them.
 			// Fade the background of the page to black, wait a bit and revert the fade.
 			fadeBackground: function() {
-				this.playing = true;
+				distractions.playing = true;
 				$('body').animate({
 					backgroundColor: '#000'
 				}, 1500, function() {
@@ -532,11 +600,11 @@ $(document).ready(function() {
 						$('body').animate({backgroundColor: '#656565'});
 					}, 1500);
 				});
-				this.playing = false;
+				distractions.playing = false;
 			},
 			// Nyan cat is on a mission to make you look at his/her glorious colors.
 			nyanCat: function() {
-				this.playing = true;
+				distractions.playing = true;
 				
 				// Get the browser's width, add 301 because that is the size of the image.
 				var width = $('html').width() + 301;
@@ -545,18 +613,18 @@ $(document).ready(function() {
 				$('#distraction-nyancat').animate({left: '+=' + width}, 2000);
 				$('#distraction-nyancat').animate({left: '-=' + width}, 2000);
 
-				this.playing = false;
+				distractions.playing = false;
 			},
 			// Fireworks go off at semi-random locations.
 			fireworks: function() {
 				// Fireworks script provided by http://www.schillmania.com/projects/fireworks/.
-				this.playing = true;
+				distractions.playing = true;
 				createFirework(40, 114 , 2, 5, null, null, null, null, false, true);
-				this.playing = false;
+				distractions.playing = false;
 			},
 			// Change the mouse cursor to one of the funniest memes ever created.
 			trollTrail: function() {
-				this.playing = true;
+				distractions.playing = true;
 				
 				$('#distraction-troll-face').css({display: 'block'});
 				$(document).bind('mousemove', mouseCursorHandler);
@@ -567,11 +635,11 @@ $(document).ready(function() {
 					$(document).unbind('mousemove');
 				}, 5000);
 
-				this.playing = false;
+				distractions.playing = false;
 			},
 			// Genius makes an apparence in today's episode of "distract player".
 			genius: function() {
-				this.playing = true;
+				distractions.playing = true;
 				
 				// Get the brower's width because we want to center the image.
 				// 82 is half the dimension of the image.
@@ -589,11 +657,11 @@ $(document).ready(function() {
 					$('#distraction-genius').css({top: '300px', left: '-164px'});
 				}, 6000);
 
-				this.playing = false;
+				distractions.playing = false;
 			},
 			// No application is complete without jackie chan.
 			jackie: function() {
-				this.playing = true;
+				distractions.playing = true;
 
 				// Get the brower's width because we want to center the image.
 				// 82 is half the dimension of the image.
@@ -610,7 +678,7 @@ $(document).ready(function() {
 					$('#distraction-jackie-chan').css({top: '300px', left: '-298px'});
 				}, 6000);
 				
-				this.playing = false;
+				distractions.playing = false;
 			}
 		};
 		
@@ -649,73 +717,6 @@ $(document).ready(function() {
 			
 			// Pick a random index from the array.
 			fnArray[Math.floor(Math.random() * fnArray.length)]();
-		}
-
-		/*
-		**************************************************************
-		Share game
-		**************************************************************
-		*/
-
-		function setGameState() {
-			// By default it has not been played by the URL.
-			state.playedFromURL = false;
-
-			// Setup to require the url params are good.
-			var level = urlParam('level');
-			var modes = urlParam('modes').split(",");
-			var seed = urlParam('seed');
-
-			// Make sure the level is legit and we have exactly 3 modes.
-			if (!positiveInt(level) || modes.length !== 3) {
-				return;
-			}
-
-			// Make sure each mode is true or false strings.
-			for (var v in modes) {
-				if (modes[v] === 'true' || modes[v] === 'false') {
-					// Move onto the next iteration.
-					continue;
-				}
-				else {
-					// At least one of them is bad.
-					return;
-				}
-			}
-
-			// Our url params are good, so let's use them.
-			if (level > state.levelMax) {
-				state.levelMax = level;
-			}
-
-			// Set the starting level to the level.
-			state.levelStart = level;
-
-			// Setup the modes.
-			// In javascript any string with > 0 length is true, so we have to do a strict compare to 'true'.
-			mode.shuffle = modes[0] === 'true';
-			mode.rotate = modes[1] === 'true';
-			mode.distract = modes[2] === 'true';
-
-			// Setup the seed. The method we use to generate a random number can accept an empty seed
-			// because it will generate its own in that case, so we don't need to validate the seed.
-			state.seed = seed;
-
-			// The game was launched by url.
-			// We use this variable to do some extra things at the end of the game as well as skip adding
-			// this game to the scoreboard when it finishes.
-			state.playedFromURL = true;
-
-			// Start the game automatically.
-			startGame();
-		}
-
-		// Add the last played game's state to the share input text box.
-		function setShareGame () {
-			// We want to play back from the level - 1 because that is the level they completed.
-			var val = 'http://nickjj.github.com/simon?level=' + (state.level - 1) + '&modes=' + mode.shuffle + ',' + mode.rotate + ',' + mode.distract + '&seed=' + state.seed;
-
-			$('#share-game').val(val);
 		}
 		
 		/*
