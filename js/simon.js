@@ -170,6 +170,142 @@ $(document).ready(function() {
 
 		/*
 		**************************************************************
+		Distractions
+		**************************************************************
+		*/
+
+		// All of the distractions. They are encapsulated in an object because we pick a random function as a distraction.
+		var distractions = {
+			playing: false, // Keep track if a distraction is playing or not, we don't want to overlap them.
+			// Fade the background of the page to black, wait a bit and revert the fade.
+			fadeBackground: function() {
+				distractions.playing = true;
+				$('body').animate({
+					backgroundColor: '#000'
+				}, 1500, function() {
+					setTimeout(function() {
+						$('body').animate({backgroundColor: '#656565'});
+						distractions.playing = false;
+					}, 1500);
+				});
+				
+			},
+			// Nyan cat is on a mission to make you look at his/her glorious colors.
+			nyanCat: function() {
+				distractions.playing = true;
+				
+				// Get the browser's width, add 301 because that is the size of the image.
+				var width = $('html').width() + 301;
+				
+				// Animate the browser width over 2 seconds then revert the position.
+				$('#distraction-nyancat').animate({left: '+=' + width}, 2000);
+				$('#distraction-nyancat').animate({left: '-=' + width}, 2000);
+
+				distractions.playing = false;
+			},
+			// Fireworks go off at semi-random locations.
+			fireworks: function() {
+				// Fireworks script provided by http://www.schillmania.com/projects/fireworks/.
+				distractions.playing = true;
+				createFirework(40, 114 , 2, 5, null, null, null, null, false, true);
+				distractions.playing = false;
+			},
+			// Change the mouse cursor to one of the funniest memes ever created.
+			trollTrail: function() {
+				distractions.playing = true;
+				
+				$('#distraction-troll-face').css({display: 'block'});
+				$(document).bind('mousemove', mouseCursorHandler);
+				
+				// Enable it for 5 seconds.
+				setTimeout(function() {
+					$('#distraction-troll-face').css({display: 'none'});
+					$(document).unbind('mousemove');
+					distractions.playing = false;
+				}, 5000);
+			},
+			// Genius makes an apparence in today's episode of "distract player".
+			genius: function() {
+				distractions.playing = true;
+				
+				// Get the brower's width because we want to center the image.
+				// 82 is half the dimension of the image.
+				var width = $('html').width() / 2 - 82;
+				
+				// Get the browser's height, add 157 because that is the size of the image.
+				var height = $('html').height() + 157;
+				
+				// Animate the browser height over 2 seconds.
+				$('#distraction-genius').css({left: width, opacity: 0.50});
+				$('#distraction-genius').animate({top: '-=' + height}, 6000);
+				
+				// Reset him.
+				setTimeout(function() {
+					$('#distraction-genius').css({top: '300px', left: '-164px'});
+					distractions.playing = false;
+				}, 6000);
+			},
+			// No application is complete without jackie chan.
+			jackie: function() {
+				distractions.playing = true;
+
+				// Get the brower's width because we want to center the image.
+				// 82 is half the dimension of the image.
+				var width = $('html').width() / 2 - 149;
+				
+				// Get the browser's height, offset it with some math based on the image's height.
+				var height = $('html').height() - 272;
+				
+				// Present him.
+				$('#distraction-jackie-chan').css({left: width, top: height});
+				
+				// Let him bask in all his glory for a few seconds.
+				setTimeout(function() {
+					$('#distraction-jackie-chan').css({top: '300px', left: '-298px'});
+					distractions.playing = false;
+				}, 6000);
+			}
+		};
+		
+		// Should we distract the player?
+		function shouldDistract() {
+			var random = Math.random();
+			
+			// Instantly report false if the game is not running.
+			if (!state.running) {
+				return false;
+			}
+			
+			// 75% chance to distract the user.
+			if (random >= 0.25) {
+				return true;
+			}
+			
+			return false;
+		}
+		
+		// Randomly pick between 1000 and 3000. This is the number of milliseconds of each distraction interval.
+		function distractionDelay() {
+			return Math.floor(Math.random() * 3000) + 1000;
+		}
+		
+		// Pick a random distraction.
+		function pickDistraction() {
+			var fnArray = [];
+			
+			for (var k in distractions) {
+				// Grab only the functions and put them into an array.
+				if (typeof(distractions[k]) === 'function') {
+					fnArray.push(distractions[k]);
+				}
+			}
+			
+			// Pick a random index from the array.
+			fnArray[Math.floor(Math.random() * fnArray.length)]();
+		}
+
+		/*
+		**************************************************************
 		Game setting initialization
 		**************************************************************
 		*/
@@ -578,144 +714,6 @@ $(document).ready(function() {
 			var val = 'http://nickjj.github.com/simon?level=' + (state.level - 1) + '&modes=' + mode.shuffle + ',' + mode.rotate + ',' + mode.distract + '&seed=' + state.seed;
 
 			$('#share-game').val(val);
-		}
-
-		/*
-		**************************************************************
-		Distractions
-		**************************************************************
-		*/
-
-		// All of the distractions. They are encapsulated in an object because we pick a random function as a distraction.
-		var distractions = {
-			playing: false, // Keep track if a distraction is playing or not, we don't want to overlap them.
-			// Fade the background of the page to black, wait a bit and revert the fade.
-			fadeBackground: function() {
-				distractions.playing = true;
-				$('body').animate({
-					backgroundColor: '#000'
-				}, 1500, function() {
-					setTimeout(function() {
-						$('body').animate({backgroundColor: '#656565'});
-					}, 1500);
-				});
-				distractions.playing = false;
-			},
-			// Nyan cat is on a mission to make you look at his/her glorious colors.
-			nyanCat: function() {
-				distractions.playing = true;
-				
-				// Get the browser's width, add 301 because that is the size of the image.
-				var width = $('html').width() + 301;
-				
-				// Animate the browser width over 2 seconds then revert the position.
-				$('#distraction-nyancat').animate({left: '+=' + width}, 2000);
-				$('#distraction-nyancat').animate({left: '-=' + width}, 2000);
-
-				distractions.playing = false;
-			},
-			// Fireworks go off at semi-random locations.
-			fireworks: function() {
-				// Fireworks script provided by http://www.schillmania.com/projects/fireworks/.
-				distractions.playing = true;
-				createFirework(40, 114 , 2, 5, null, null, null, null, false, true);
-				distractions.playing = false;
-			},
-			// Change the mouse cursor to one of the funniest memes ever created.
-			trollTrail: function() {
-				distractions.playing = true;
-				
-				$('#distraction-troll-face').css({display: 'block'});
-				$(document).bind('mousemove', mouseCursorHandler);
-				
-				// Enable it for 5 seconds.
-				setTimeout(function() {
-					$('#distraction-troll-face').css({display: 'none'});
-					$(document).unbind('mousemove');
-				}, 5000);
-
-				distractions.playing = false;
-			},
-			// Genius makes an apparence in today's episode of "distract player".
-			genius: function() {
-				distractions.playing = true;
-				
-				// Get the brower's width because we want to center the image.
-				// 82 is half the dimension of the image.
-				var width = $('html').width() / 2 - 82;
-				
-				// Get the browser's height, add 157 because that is the size of the image.
-				var height = $('html').height() + 157;
-				
-				// Animate the browser height over 2 seconds.
-				$('#distraction-genius').css({left: width, opacity: 0.50});
-				$('#distraction-genius').animate({top: '-=' + height}, 6000);
-				
-				// Reset him.
-				setTimeout(function() {
-					$('#distraction-genius').css({top: '300px', left: '-164px'});
-				}, 6000);
-
-				distractions.playing = false;
-			},
-			// No application is complete without jackie chan.
-			jackie: function() {
-				distractions.playing = true;
-
-				// Get the brower's width because we want to center the image.
-				// 82 is half the dimension of the image.
-				var width = $('html').width() / 2 - 149;
-				
-				// Get the browser's height, offset it with some math based on the image's height.
-				var height = $('html').height() - 272;
-				
-				// Present him.
-				$('#distraction-jackie-chan').css({left: width, top: height});
-				
-				// Let him bask in all his glory for a few seconds.
-				setTimeout(function() {
-					$('#distraction-jackie-chan').css({top: '300px', left: '-298px'});
-				}, 6000);
-				
-				distractions.playing = false;
-			}
-		};
-		
-		// Should we distract the player?
-		function shouldDistract() {
-			var random = Math.random();
-			
-			// Instantly report false if the game is not running.
-			if (!state.running) {
-				return false;
-			}
-			
-			// 75% chance to distract the user.
-			if (random >= 0.25) {
-				return true;
-			}
-			
-			return false;
-		}
-		
-		// Randomly pick between 1000 and 3000. This is the number of milliseconds of each distraction interval.
-		function distractionDelay() {
-			return Math.floor(Math.random() * 3000) + 1000;
-		}
-		
-		// Pick a random distraction.
-		function pickDistraction() {
-			var fnArray = [];
-			
-			for (var k in distractions) {
-				// Grab only the functions and put them into an array.
-				if (typeof(distractions[k]) === 'function') {
-					fnArray.push(distractions[k]);
-				}
-			}
-			
-			// Pick a random index from the array.
-			fnArray[Math.floor(Math.random() * fnArray.length)]();
 		}
 		
 		/*
