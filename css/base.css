@@ -155,7 +155,7 @@ p, label {
 	letter-spacing: 0.9px;
 }
 
-input {
+.input-text {
 	background-color: #888;
 	color: #333;
 	border: 1px solid #565656;
