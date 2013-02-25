@@ -98,9 +98,13 @@ $(document).ready(function() {
 		$('#share-game').bind('click touchend', function(e) {
 			e.stopPropagation();
 			e.preventDefault();
-
-			this.selectionStart = 0;
-			this.selectionEnd = this.value.length;
+			
+			// 1 millisecond delay fixes selection issues in IE 8.
+			var self = this;
+			setTimeout(function() {
+				this.selectionStart = 0;
+				this.selectionEnd = this.value.length;
+			}, 1);
 		});
 
 		// Setup all the handlers.
