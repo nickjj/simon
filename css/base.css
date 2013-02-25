@@ -82,6 +82,16 @@ body {
 	text-align: center;
 }
 
+#share {
+	visibility: hidden;
+	position: absolute;
+	top: -8px;
+}
+
+#share-label {
+	margin-bottom: 4px;
+}
+
 #distraction-nyancat {
 	position: absolute;
 	top: 300px;
@@ -143,6 +153,15 @@ button:hover {
 p, label {
 	text-align: left;
 	letter-spacing: 0.9px;
+}
+
+input {
+	background-color: #888;
+	color: #333;
+	border: 1px solid #565656;
+	width: 288px;
+	padding: 4px;
+	outline: none;
 }
 
 .shape {

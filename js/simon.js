@@ -5,28 +5,31 @@ $(document).ready(function() {
 		Global variables to hold the game's current state and options.
 		**************************************************************
 		*/
-		var handlers = [];            // Store a reference to each input handler so we can restore them later (we remove input at some points in the game).               
+		var handlers = [];          // Store a reference to each input handler so we can restore them later (we remove input at some points in the game).
 		var state = {
+			mt: undefined,            // Mersenne Twister object. Used to generate random number sequences with a seed.
+			seed: 0,                  // The seed used when generating a random number.
 			pattern: [],              // An array of randomly generated numbers, this is the selected color list for the current game.
 			levelStart: 1,            // Start at this specific level.
-			levelMax: 1000,           // The max level. Yeah, serious business.
+			levelMax: 100,            // The max level. Yeah, serious business.
 			level: this.levelStart,   // Store the current level.
 			turn: 0,                  // The point you're at within the level, this starts at 0.
 			replayProgress: 0,        // Used to prevent the replay point from going past the player's current level.
 			time: {                   // Time in milliseconds for certain game mechanics.
-				turn: 1500,           // Craziness will ensue if you do not keep the ratios between these 3 numbers the same.
+				turn: 1500,             // Craziness will ensue if you do not keep the ratios between these 3 numbers the same.
 				levelTransition: 750,
-				flashColor: 375,			
+				flashColor: 375
 			},
-			running: false            // Is the game running or not?
+			running: false,           // Is the game running or not?
+			playedFromURL: false      // Was the game played from a URL?
 		};
-		var time = {                                     // Default values for the time mechanics, it uses the first state.time values.
+		var time = {                                   // Default values for the time mechanics, it uses the first state.time values.
 			turn: state.time.turn,                       // We store a copy here because the state.time values get mutated each level
 			levelTransition: state.time.levelTransition, // and we need a way to revert them back on game end.
 			flashColor: state.time.flashColor,
 			scale: 1                                     // scale 2 would be twice as fast, 0.5 would be twice as slow, 3 would be 3x as fast, etc..
 		};
-		var mode = {				  // Game mode default settings.
+		var mode = {                // Game mode default settings.
 			shuffle: false,           // The color order gets randomly switched every level.
 			rotate: false,            // The game board rotates as long as the game is still being played.
 			distract: false,          // The player gets randomly distracted by various screen altering effects.
@@ -47,15 +50,15 @@ $(document).ready(function() {
 				var $this = $(this);
 				var elems = $this.children(childElem);
 
-				elems.sort(function() { return (Math.round(Math.random())-0.5); });  
+				elems.sort(function() { return (Math.round(Math.random())-0.5); });
 
-				$this.remove(childElem);  
+				$this.remove(childElem);
 
 				for(var i = 0; i < elems.length; i++) {
 					$this.append(elems[i]);
 				}
 			});
-		}
+		};
 		
 		// Revert the effects of the random list.
 		$.fn.resetColors = function(childElem) {
@@ -64,15 +67,15 @@ $(document).ready(function() {
 				var elems = $this.children(childElem);
 				
 				// Custom sort function to sort on the id of each element.
-				elems.sort(function(a, b) { return a.id - b.id; });  
+				elems.sort(function(a, b) { return a.id - b.id; });
 
-				$this.remove(childElem);  
+				$this.remove(childElem);
 
 				for(var i = 0; i < elems.length; i++) {
 					$this.append(elems[i]);
 				}
 			});
-		}
+		};
 		
 		// Rotate an element by a certain amount of degrees.
 		$.fn.rotate = function(degree) {
@@ -83,7 +86,7 @@ $(document).ready(function() {
 				
 				mode.rotateId = setTimeout(function() { $this.rotate(++degree); }, 25);
 			});
-		}
+		};
 		
 		/*
 		**************************************************************
@@ -91,6 +94,15 @@ $(document).ready(function() {
 		**************************************************************
 		*/
 		
+		// Capture click and touchend events on the share input box so it instantly selects the text.
+		$('#share-game').bind('click touchend', function(e) {
+			e.stopPropagation();
+			e.preventDefault();
+
+			this.selectionStart = 0;
+			this.selectionEnd = this.value.length;
+		});
+
 		// Setup all the handlers.
 		function inputHandler(index) {
 			return function() {
@@ -113,7 +125,7 @@ $(document).ready(function() {
 		
 		$('#scoreboard-clear').click(function() {
 			clearScores();
-		});			
+		});
 		
 		// One of the distractions uses this, so we cache it to a function and bind/unbind it in the distraction function.
 		var mouseCursorHandler = function(e) {
@@ -123,7 +135,7 @@ $(document).ready(function() {
 				'position': 'absolute',
 				top: e.pageY + 2,
 				left: e.pageX + 2
-			}).animate({opacity: 0}, 150, function() { $(this).remove(); })};
+			}).animate({opacity: 0}, 150, function() { $(this).remove(); });};
 		
 		for (var key in mode) {
 			// Here's a self executing function that acts on a closure.
@@ -147,7 +159,7 @@ $(document).ready(function() {
 			// Cache the input handler because we will be enabling/disabling clicking later on
 			// during the replay of each level.
 			// This also acts as a closure to make sure "i"'s value is correctly passed to each handler.
-			var fn = inputHandler(i)
+			var fn = inputHandler(i);
 			
 			// We want to support touching and tapping on mobile devices, not just clicks.
 			// The jquery.touchToClick plugin allows us to just bind click but properly handle touching and tapping too.
@@ -163,13 +175,17 @@ $(document).ready(function() {
 		*/
 		
 		// Configure the modes.
-		for (var key in mode) {
-			$('#' + key).attr('checked', mode[key]);
+		for (var k in mode) {
+			$('#' + k).attr('checked', mode[k]);
 		}
 
 		// The colors should not be usable when the game is not running and also load the top 5 scoreboard.
 		toggleHandlers(false);
 		loadTop5();
+
+		// If we have URL params, setup the initial game state. This is handled by the function being called.
+		// We want games to start automatically if they originated from a URL.
+		setGameState();
 
 		/*
 		**************************************************************
@@ -179,7 +195,7 @@ $(document).ready(function() {
 
 		function startGame(fromLevel) {
 			// The game is now running.
-			state.running = true;		
+			state.running = true;
 			
 			// Show the level the first time the game is played.
 			// We never unhide the level because we want the level to be shown even after the game finishes.
@@ -187,6 +203,7 @@ $(document).ready(function() {
 		
 			// We hide a few elements to remove some clutter from the screen.
 			// We want to eliminate as many distractions as possible while the game itself is running.
+			$('#share').css('visibility', 'hidden');
 			$('#logo').css('visibility', 'hidden');
 			$('#buttons').css('visibility', 'hidden');
 			$('#directions').css('visibility', 'hidden');
@@ -247,8 +264,22 @@ $(document).ready(function() {
 			// Clear the distraction interval.
 			clearTimeout(mode.distractId);
 			
-			// Potentially save the score.
-			saveScoreToTop5();
+			// Potentially save the score only if it wasn't a game played from a URL.
+			if (!state.playedFromURL) {
+				saveScoreToTop5();
+
+				// Set the share game input box only for games you played.
+				// Only share games where the player beat at least level 1.
+				if (state.level > 1) {
+					$('#share').css('visibility', 'visible');
+					setShareGame();
+				}
+			}
+			else {
+				// The game is over having been played by a URL.
+				// Let's clear the URL params and refresh the page.
+				reloadToPath();
+			}
 		}
 		
 		function showOptions() {
@@ -282,7 +313,7 @@ $(document).ready(function() {
 			}
 			else {
 				// Wrong answer!
-				stopGame();			
+				stopGame();
 			}
 		}
 		
@@ -419,10 +450,10 @@ $(document).ready(function() {
 				store.clear();
 				
 				// This time we use <= because we added one to the scoresCount.
-				for (var i = 0; i <= scoresCount; i++) {
+				for (var j = 0; j <= scoresCount; j++) {
 					// Only set it if it exists.
-					if (arrayScores[i]) {
-						store.set('entry-' + i, {date: arrayScores[i].date, level: arrayScores[i].level, modes: {shuffle: arrayScores[i].modes.shuffle, rotate: arrayScores[i].modes.rotate, distract: arrayScores[i].modes.distract}});
+					if (arrayScores[j]) {
+						store.set('entry-' + j, {date: arrayScores[j].date, level: arrayScores[j].level, modes: {shuffle: arrayScores[j].modes.shuffle, rotate: arrayScores[j].modes.rotate, distract: arrayScores[j].modes.distract}});
 					}
 				}
 				
@@ -453,7 +484,7 @@ $(document).ready(function() {
 			}
 			
 			return entries;
-		}		
+		}
 
 		// Create an html string for each mode icon.
 		function top5Modes(obj) {
@@ -473,7 +504,7 @@ $(document).ready(function() {
 		
 		// Add an item to local storage.
 		function setEntry() {
-			return {date: generateCleanDate(), level: state.level, modes: {shuffle: mode.shuffle, rotate: mode.rotate, distract: mode.distract}}			
+			return {date: generateCleanDate(), level: state.level, modes: {shuffle: mode.shuffle, rotate: mode.rotate, distract: mode.distract}};
 		}
 		
 		// Clear the scores and reload the scoreboard.
@@ -486,7 +517,7 @@ $(document).ready(function() {
 		**************************************************************
 		Distractions
 		**************************************************************
-		*/		
+		*/
 
 		// All of the distractions. They are encapsulated in an object because we pick a random function as a distraction.
 		var distractions = {
@@ -495,7 +526,7 @@ $(document).ready(function() {
 			fadeBackground: function() {
 				this.playing = true;
 				$('body').animate({
-					backgroundColor: '#000',
+					backgroundColor: '#000'
 				}, 1500, function() {
 					setTimeout(function() {
 						$('body').animate({backgroundColor: '#656565'});
@@ -577,7 +608,7 @@ $(document).ready(function() {
 				// Let him bask in all his glory for a few seconds.
 				setTimeout(function() {
 					$('#distraction-jackie-chan').css({top: '300px', left: '-298px'});
-				}, 6000);				
+				}, 6000);
 				
 				this.playing = false;
 			}
@@ -607,7 +638,7 @@ $(document).ready(function() {
 		
 		// Pick a random distraction.
 		function pickDistraction() {
-			var fnArray = []
+			var fnArray = [];
 			
 			for (var k in distractions) {
 				// Grab only the functions and put them into an array.
@@ -618,6 +649,73 @@ $(document).ready(function() {
 			
 			// Pick a random index from the array.
 			fnArray[Math.floor(Math.random() * fnArray.length)]();
+		}
+
+		/*
+		**************************************************************
+		Share game
+		**************************************************************
+		*/
+
+		function setGameState() {
+			// By default it has not been played by the URL.
+			state.playedFromURL = false;
+
+			// Setup to require the url params are good.
+			var level = urlParam('level');
+			var modes = urlParam('modes').split(",");
+			var seed = urlParam('seed');
+
+			// Make sure the level is legit and we have exactly 3 modes.
+			if (!positiveInt(level) || modes.length !== 3) {
+				return;
+			}
+
+			// Make sure each mode is true or false strings.
+			for (var v in modes) {
+				if (modes[v] === 'true' || modes[v] === 'false') {
+					// Move onto the next iteration.
+					continue;
+				}
+				else {
+					// At least one of them is bad.
+					return;
+				}
+			}
+
+			// Our url params are good, so let's use them.
+			if (level > state.levelMax) {
+				state.levelMax = level;
+			}
+
+			// Set the starting level to the level.
+			state.levelStart = level;
+
+			// Setup the modes.
+			// In javascript any string with > 0 length is true, so we have to do a strict compare to 'true'.
+			mode.shuffle = modes[0] === 'true';
+			mode.rotate = modes[1] === 'true';
+			mode.distract = modes[2] === 'true';
+
+			// Setup the seed. The method we use to generate a random number can accept an empty seed
+			// because it will generate its own in that case, so we don't need to validate the seed.
+			state.seed = seed;
+
+			// The game was launched by url.
+			// We use this variable to do some extra things at the end of the game as well as skip adding
+			// this game to the scoreboard when it finishes.
+			state.playedFromURL = true;
+
+			// Start the game automatically.
+			startGame();
+		}
+
+		// Add the last played game's state to the share input text box.
+		function setShareGame () {
+			// We want to play back from the level - 1 because that is the level they completed.
+			var val = 'http://nickjj.github.com/simon?level=' + (state.level - 1) + '&modes=' + mode.shuffle + ',' + mode.rotate + ',' + mode.distract + '&seed=' + state.seed;
+
+			$('#share-game').val(val);
 		}
 		
 		/*
@@ -663,18 +761,34 @@ $(document).ready(function() {
 			state.time = {
 				turn: (time.turn / time.scale) * scaleSpeed,
 				levelTransition: (time.levelTransition / time.scale) * scaleSpeed,
-				flashColor: (time.flashColor / time.scale) * scaleSpeed,
+				flashColor: (time.flashColor / time.scale) * scaleSpeed
 			};
 		}
 		
 		// Flash a color by adjusting its opacity.
 		function flashColor(index) {
-			// TODO: play a sound here if needed.
 			$('#' + index).stop().animate({ opacity: 1 }, state.time.flashColor).animate({ opacity: 0.50 }, state.time.flashColor);
 		}
 
 		// Fill the pattern array with random numbers between 0-5.
 		function generatePattern() {
+			var seed = 0;
+
+			if (state.playedFromURL) {
+				// If we're loading it from a URL, use the URL's seed.
+				seed = state.seed;
+			}
+			else {
+				// Generate and set a new seed based off the current time.
+				seed = new Date().getTime();
+				state.seed = seed;
+			}
+
+			// Generate a new Mersenne Twister random number generator object.
+			// We use this instance of MT to generate this entire pattern.
+			// Source: https://gist.github.com/banksean/300494.
+			state.mt = new MersenneTwister(seed);
+
 			// Clear and generate a new pattern.
 			state.pattern = [];
 			
@@ -683,15 +797,15 @@ $(document).ready(function() {
 				state.pattern.push(generateRandomNumber());
 			}
 		}
-		
-		// Generate a random number between 0 and 5.
+
+		// Generate a random number between 0 and 5 using Mersenne Twister.
 		function generateRandomNumber() {
-			return Math.floor(Math.random() * 6);
+			return Math.floor(state.mt.random() * 6);
 		}
 		
 		// Rotate the game background to a specific degree.
 		function setRotationDegree(degree) {
-			// General technique taken from: http://stackoverflow.com/a/3792085
+			// General technique taken from: http://stackoverflow.com/a/3792085.
 			$('#game-background').css({WebkitTransform: 'rotate(' + degree + 'deg)'});
 			$('#game-background').css({'-moz-transform': 'rotate(' + degree + 'deg)'});
 			$('#game-background').css({'-o-transform': 'rotate(' + degree + 'deg)'});
@@ -768,5 +882,24 @@ $(document).ready(function() {
 				}	
 			}
 		}
-	})(jQuery);		
+
+		// Get a parameter's value from a URL.
+		// Source: http://stackoverflow.com/a/1404100.
+		function urlParam(name) {
+			return decodeURI(
+				(RegExp(name + '=' + '(.+?)(&|$)').exec(location.search)||[null])[1]
+			);
+		}
+
+		// Determine if an input is a positive integer.
+		// Source: http://stackoverflow.com/a/10835227.
+		function positiveInt(value) {
+			return value >>> 0 === parseFloat(value);
+		}
+
+		// Reload the browser to a specified path, stripping any url params in the process.
+		function reloadToPath() {
+			window.location = window.location.pathname;
+		}
+	})(jQuery);
 });
