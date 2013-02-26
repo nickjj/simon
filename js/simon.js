@@ -99,12 +99,8 @@ $(document).ready(function() {
 			e.stopPropagation();
 			e.preventDefault();
 			
-			// 1 millisecond delay fixes selection issues in IE8.
-			var self = this;
-			setTimeout(function() {
-				self.selectionStart = 0;
-				self.selectionEnd = self.value.length;
-			}, 1);
+			this.selectionStart = 0;
+			this.selectionEnd = this.value.length;
 		});
 
 		// Setup all the handlers.
