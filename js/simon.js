@@ -99,16 +99,8 @@ $(document).ready(function() {
 			e.stopPropagation();
 			e.preventDefault();
 			
-			// Fix selection in IE 8.
-			if ($.browser.msie) {
-				var range = document.body.createTextRange();
-				range.moveToElementText($('#share-game'));
-				range.select();
-			}
-			else {
-				this.selectionStart = 0;
-				this.selectionEnd = this.value.length;
-			}
+			this.selectionStart = 0;
+			this.selectionEnd = this.value.length;
 		});
 
 		// Setup all the handlers.
