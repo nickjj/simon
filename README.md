@@ -4,7 +4,7 @@ A modification of the popular memory game simon.
 
 ## Demo
 
-The game can be played by visiting this [repo's github page](http://nickjj.github.com/simon).
+The game can be played by visiting this [repo's github page](https://nickjj.github.io/simon/).
 
 ## Features
 
