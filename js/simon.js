@@ -36,13 +36,13 @@ $(document).ready(function() {
 			rotateId: 0,              // The id to track the timeout, keep this at 0.
 			distractId: 0             // The id to track the timeout, keep this at 0.
 		};
-		
+
 		/*
 		**************************************************************
 		jQuery plugins
 		**************************************************************
 		*/
-		
+
 		// I ripped this function off from a stackoverflow answer.
 		// Source: http://stackoverflow.com/a/1533945/709091
 		$.fn.randomize = function(childElem) {
@@ -59,13 +59,13 @@ $(document).ready(function() {
 				}
 			});
 		};
-		
+
 		// Revert the effects of the random list.
 		$.fn.resetColors = function(childElem) {
 			return this.each(function() {
 				var $this = $(this);
 				var elems = $this.children(childElem);
-				
+
 				// Custom sort function to sort on the id of each element.
 				elems.sort(function(a, b) { return a.id - b.id; });
 
@@ -76,29 +76,29 @@ $(document).ready(function() {
 				}
 			});
 		};
-		
+
 		// Rotate an element by a certain amount of degrees.
 		$.fn.rotate = function(degree) {
 			return this.each(function() {
 				var $this = $(this);
-				
+
 				setRotationDegree(degree);
-				
+
 				mode.rotateId = setTimeout(function() { $this.rotate(++degree); }, 25);
 			});
 		};
-		
+
 		/*
 		**************************************************************
 		Event handler setup
 		**************************************************************
 		*/
-		
+
 		// Capture click and touchend events on the share input box so it instantly selects the text.
 		$('#share-game').bind('click touchend', function(e) {
 			e.stopPropagation();
 			e.preventDefault();
-			
+
 			this.selectionStart = 0;
 			this.selectionEnd = this.value.length;
 		});
@@ -110,23 +110,23 @@ $(document).ready(function() {
 				color(index);
 			};
 		}
-		
+
 		$('#start').click(function() {
 			startGame();
 		});
-		
+
 		$('#options').click(function() {
 			showOptions();
 		});
-		
+
 		$('#top5').click(function() {
 			showScoreboard();
 		});
-		
+
 		$('#scoreboard-clear').click(function() {
 			clearScores();
 		});
-		
+
 		// One of the distractions uses this, so we cache it to a function and bind/unbind it in the distraction function.
 		var mouseCursorHandler = function(e) {
 			pointer = $('<img>').attr({'src': 'images/distractions/trollface.png'});
@@ -136,7 +136,7 @@ $(document).ready(function() {
 				top: e.pageY + 2,
 				left: e.pageX + 2
 			}).animate({opacity: 0}, 150, function() { $(this).remove(); });};
-		
+
 		for (var key in mode) {
 			// Here's a self executing function that acts on a closure.
 			// This creates a new variable scope on every step of the loop because
@@ -153,14 +153,14 @@ $(document).ready(function() {
 				});
 			})(key);
 		}
-		
+
 		// Attach input handlers for each color and cache the handler itself.
 		for (var i = 0; i < 6; i++) {
 			// Cache the input handler because we will be enabling/disabling clicking later on
 			// during the replay of each level.
 			// This also acts as a closure to make sure "i"'s value is correctly passed to each handler.
 			var fn = inputHandler(i);
-			
+
 			// We want to support touching and tapping on mobile devices, not just clicks.
 			// The jquery.touchToClick plugin allows us to just bind click but properly handle touching and tapping too.
 			// The source of the plugin: https://raw.github.com/cargomedia/jquery.touchToClick
@@ -188,15 +188,15 @@ $(document).ready(function() {
 						distractions.playing = false;
 					}, 1500);
 				});
-				
+
 			},
 			// Nyan cat is on a mission to make you look at his/her glorious colors.
 			nyanCat: function() {
 				distractions.playing = true;
-				
+
 				// Get the browser's width, add 301 because that is the size of the image.
 				var width = $('html').width() + 301;
-				
+
 				// Animate the browser width over 2 seconds then revert the position.
 				$('#distraction-nyancat').animate({left: '+=' + width}, 2000);
 				$('#distraction-nyancat').animate({left: '-=' + width}, 2000);
@@ -213,10 +213,10 @@ $(document).ready(function() {
 			// Change the mouse cursor to one of the funniest memes ever created.
 			trollTrail: function() {
 				distractions.playing = true;
-				
+
 				$('#distraction-troll-face').css({display: 'block'});
 				$(document).bind('mousemove', mouseCursorHandler);
-				
+
 				// Enable it for 5 seconds.
 				setTimeout(function() {
 					$('#distraction-troll-face').css({display: 'none'});
@@ -227,18 +227,18 @@ $(document).ready(function() {
 			// Genius makes an apparence in today's episode of "distract player".
 			genius: function() {
 				distractions.playing = true;
-				
+
 				// Get the brower's width because we want to center the image.
 				// 82 is half the dimension of the image.
 				var width = $('html').width() / 2 - 82;
-				
+
 				// Get the browser's height, add 157 because that is the size of the image.
 				var height = $('html').height() + 157;
-				
+
 				// Animate the browser height over 2 seconds.
 				$('#distraction-genius').css({left: width, opacity: 0.50});
 				$('#distraction-genius').animate({top: '-=' + height}, 6000);
-				
+
 				// Reset him.
 				setTimeout(function() {
 					$('#distraction-genius').css({top: '300px', left: '-164px'});
@@ -252,13 +252,13 @@ $(document).ready(function() {
 				// Get the brower's width because we want to center the image.
 				// 82 is half the dimension of the image.
 				var width = $('html').width() / 2 - 149;
-				
+
 				// Get the browser's height, offset it with some math based on the image's height.
 				var height = $('html').height() - 272;
-				
+
 				// Present him.
 				$('#distraction-jackie-chan').css({left: width, top: height});
-				
+
 				// Let him bask in all his glory for a few seconds.
 				setTimeout(function() {
 					$('#distraction-jackie-chan').css({top: '300px', left: '-298px'});
@@ -266,40 +266,40 @@ $(document).ready(function() {
 				}, 6000);
 			}
 		};
-		
+
 		// Should we distract the player?
 		function shouldDistract() {
 			var random = Math.random();
-			
+
 			// Instantly report false if the game is not running.
 			if (!state.running) {
 				return false;
 			}
-			
+
 			// 75% chance to distract the user.
 			if (random >= 0.25) {
 				return true;
 			}
-			
+
 			return false;
 		}
-		
+
 		// Randomly pick between 1000 and 3000. This is the number of milliseconds of each distraction interval.
 		function distractionDelay() {
 			return Math.floor(Math.random() * 3000) + 1000;
 		}
-		
+
 		// Pick a random distraction.
 		function pickDistraction() {
 			var fnArray = [];
-			
+
 			for (var k in distractions) {
 				// Grab only the functions and put them into an array.
 				if (typeof(distractions[k]) === 'function') {
 					fnArray.push(distractions[k]);
 				}
 			}
-			
+
 			// Pick a random index from the array.
 			fnArray[Math.floor(Math.random() * fnArray.length)]();
 		}
@@ -309,7 +309,7 @@ $(document).ready(function() {
 		Game setting initialization
 		**************************************************************
 		*/
-		
+
 		// Configure the modes.
 		for (var k in mode) {
 			$('#' + k).attr('checked', mode[k]);
@@ -332,11 +332,11 @@ $(document).ready(function() {
 		function startGame(fromLevel) {
 			// The game is now running.
 			state.running = true;
-			
+
 			// Show the level the first time the game is played.
 			// We never unhide the level because we want the level to be shown even after the game finishes.
 			$('#level').css('visibility', 'visible').html('Level: <span id="points" class="highlight">' + state.levelStart + "</span>");
-		
+
 			// We hide a few elements to remove some clutter from the screen.
 			// We want to eliminate as many distractions as possible while the game itself is running.
 			$('#share').css('visibility', 'hidden');
@@ -346,7 +346,7 @@ $(document).ready(function() {
 			$('#option-list').css('display', 'none');
 			$('#scoreboard').css('display', 'none');
 			$('#game-background').css('display', 'block');
-			
+
 			// Enable any game modes.
 			if (mode.rotate) {
 				$('#game-background').rotate(0);
@@ -360,7 +360,7 @@ $(document).ready(function() {
 					}
 				}, distractionDelay());
 			}
-			
+
 			// Fill the pattern array and reset our global state.
 			generatePattern();
 			state.level = state.levelStart;
@@ -374,32 +374,32 @@ $(document).ready(function() {
 		function stopGame() {
 			// Set the default label to be the loser label.
 			var doneLabel = 'Game over,<br />you made it to level: <span class="highlight">' + state.level + '</span>';
-		
+
 			// The game is no longer running.
 			state.running = false;
 			toggleHandlers(false);
-			
+
 			// Show the labels again.
 			$('#logo').css('visibility', 'visible');
 			$('#buttons').css('visibility', 'visible');
 			$('#directions').css('visibility', 'visible');
-			
+
 			// Update the level label depending on if they won or lost.
 			if (state.level >= state.levelMax) {
 				doneLabel = 'Well done,<br />you hit the level cap of: <span class="highlight">' + state.level + '</span>';
 			}
 			$('#level').html(doneLabel);
-			
+
 			// Fix the color order because it may have changed from shuffle mode.
 			$('#colors').resetColors('li');
-			
+
 			// Set the rotation back to normal and cancel it.
 			setRotationDegree(0);
 			clearTimeout(mode.rotateId);
-			
+
 			// Clear the distraction interval.
 			clearTimeout(mode.distractId);
-			
+
 			// Potentially save the score only if it wasn't a game played from a URL.
 			if (!state.playedFromURL) {
 				saveScoreToTop5();
@@ -417,25 +417,25 @@ $(document).ready(function() {
 				reloadToPath();
 			}
 		}
-		
+
 		function showOptions() {
 			$('#game-background').css('display', 'none');
 			$('#scoreboard').css('display', 'none');
 			$('#option-list').css('display', 'block');
 		}
-		
+
 		function showScoreboard() {
 			$('#game-background').css('display', 'none');
 			$('#option-list').css('display', 'none');
 			$('#scoreboard').css('display', 'block');
 		}
-		
+
 		/*
 		**************************************************************
 		Game logic
 		**************************************************************
 		*/
-		
+
 		function color(index) {
 			flashColor(index);
 
@@ -452,26 +452,26 @@ $(document).ready(function() {
 				stopGame();
 			}
 		}
-		
+
 		function levelUp() {
 			// The game cannot continue if the player has hit the max level.
 			if (state.level === state.levelMax) {
 				stopGame();
 				return;
 			}
-		
+
 			// We made it to the next level, so our state.turn has to reset and things need to be updated.
 			state.level++;
 			$('#points').html(state.level);
 			state.turn = 0;
 			state.replayProgress = 0;
 			updateTimeScale();
-			
+
 			// Replay to the level at which the player is at.
 			setTimeout(function() {
 				replayToCurrentLevel();
 			}, state.time.turn);
-			
+
 			// Randomize the list elements every level up if shuffle mode is enabled.
 			if (mode.shuffle) {
 				setTimeout(function() {
@@ -479,7 +479,7 @@ $(document).ready(function() {
 				}, state.time.levelTransition);
 			}
 		}
-		
+
 		function replayToCurrentLevel() {
 			// Disable the handlers for the replay duration.
 			toggleHandlers(false);
@@ -495,7 +495,7 @@ $(document).ready(function() {
 				setTimeout(function() {
 					replayToCurrentLevel();
 				}, state.time.levelTransition);
-				
+
 				state.replayProgress++;
 			}
 		}
@@ -508,17 +508,17 @@ $(document).ready(function() {
 
 		function loadTop5() {
 			$('#scoreboard-empty').css('display', 'block');
-		
+
 			// We can't show it if the user's browser is not supported by store.js.
 			if (!store.enabled) {
 				$('#scoreboard-empty').html('Sorry, your web browser does not support this feature.');
 				return;
 			}
-			
+
 			// Get the scores.
 			var scores = store.getAll();
 			var scoresCount = countScores(scores);
-			
+
 			// Time to go, there's nothing to report.
 			if (!scoresCount) {
 				$('#scoreboard-display').css('display', 'none');
@@ -526,13 +526,13 @@ $(document).ready(function() {
 				$('#scoreboard-empty').html('You have not played any games, there are no scores to display.');
 				return;
 			}
-			
+
 			// Hide the empty message.
 			$('#scoreboard-empty').css('display', 'none');
-			
+
 			// Show the clear scores link.
 			$('#scoreboard-clear').css('display', 'block');
-			
+
 			// Populate the scoreboard, it's already in the correct order. First we need to clear the old board though.
 			$('#scoreboard-display > tbody').empty();
 			for (var key in scores) {
@@ -540,7 +540,7 @@ $(document).ready(function() {
 			}
 			$('#scoreboard-display').css('display', 'block');
 		}
-		
+
 		function saveScoreToTop5() {
 			// Exit out early if it's not enabled.
 			if (!store.enabled) { return; }
@@ -549,7 +549,7 @@ $(document).ready(function() {
 			var scores = store.getAll();
 			var scoresCount = countScores(scores);
 			var addedToBoard = false;
-			
+
 			// If there's no scores then it's easy, just set this score and we're done.
 			if (!scoresCount) {
 				store.set('entry-0', setEntry());
@@ -559,7 +559,7 @@ $(document).ready(function() {
 
 			// Get an array of sorted scores because we can't sort objects by key in javascript.
 			var arrayScores = objectToArray(scores).sort(byLevel);
-			
+
 			// Is this score worthy of the scoreboard?
 			for (var i = 0; i < scoresCount; i++) {
 				// Yeah it is worthy, so we have to adjust the scoreboard.
@@ -570,21 +570,21 @@ $(document).ready(function() {
 						arrayScores.splice(i, 0, setEntry());
 						addedToBoard = true;
 					}
-					
+
 					// If we go above 5 in size then we need to pop off the last element.
 					if (arrayScores.length > 5) {
 						arrayScores.pop();
 					}
 				}
 			}
-			
+
 			arrayScores.sort(byLevel);
-			
+
 			// If we modified the board then we need to reassemble the board.
 			if (addedToBoard) {
 				// First we clear the old board and then iterate over our array and add each new score.
 				store.clear();
-				
+
 				// This time we use <= because we added one to the scoresCount.
 				for (var j = 0; j <= scoresCount; j++) {
 					// Only set it if it exists.
@@ -592,7 +592,7 @@ $(document).ready(function() {
 						store.set('entry-' + j, {date: arrayScores[j].date, level: arrayScores[j].level, modes: {shuffle: arrayScores[j].modes.shuffle, rotate: arrayScores[j].modes.rotate, distract: arrayScores[j].modes.distract}});
 					}
 				}
-				
+
 				// Update the scoreboard only if it changed.
 				loadTop5();
 			}
@@ -602,30 +602,30 @@ $(document).ready(function() {
 		function byLevel(a, b) {
 			var a1 = a.level;
 			var b1 = b.level;
-			
+
 			if (a1 === b1) return 0;
-			
+
 			// Sort it so the highest scores are first.
 			return a1 > b1 ? -1 : 1;
 		}
-		
+
 		// Count the number of scores for the top 5 scoreboard.
 		function countScores(obj) {
 			var entries = 0;
-			
+
 			for (var k in obj) {
 				if (obj.hasOwnProperty(k)) {
 					entries++;
 				}
 			}
-			
+
 			return entries;
 		}
 
 		// Create an html string for each mode icon.
 		function top5Modes(obj) {
 			var modes = '';
-		
+
 			for (var k in obj) {
 				if (obj.hasOwnProperty(k)) {
 					// Add the mode if it's there and true.
@@ -634,15 +634,15 @@ $(document).ready(function() {
 					}
 				}
 			}
-			
+
 			return modes;
 		}
-		
+
 		// Add an item to local storage.
 		function setEntry() {
 			return {date: generateCleanDate(), level: state.level, modes: {shuffle: mode.shuffle, rotate: mode.rotate, distract: mode.distract}};
 		}
-		
+
 		// Clear the scores and reload the scoreboard.
 		function clearScores() {
 			store.clear();
@@ -711,17 +711,17 @@ $(document).ready(function() {
 		// Add the last played game's state to the share input text box.
 		function setShareGame () {
 			// We want to play back from the level - 1 because that is the level they completed.
-			var val = 'http://nickjj.github.com/simon?level=' + (state.level - 1) + '&modes=' + mode.shuffle + ',' + mode.rotate + ',' + mode.distract + '&seed=' + state.seed;
+			var val = 'https://nickjj.github.io/simon/?level=' + (state.level - 1) + '&modes=' + mode.shuffle + ',' + mode.rotate + ',' + mode.distract + '&seed=' + state.seed;
 
 			$('#share-game').val(val);
 		}
-		
+
 		/*
 		**************************************************************
 		Utility functions
 		**************************************************************
 		*/
-		
+
 		// Enable or disable being able to click the colors. We want to stop the player from
 		// clicking during the replay but then later re-enable it so they can actually play.
 		function toggleHandlers(turnOn) {
@@ -735,25 +735,25 @@ $(document).ready(function() {
 				}
 			}
 		}
-		
+
 		// Speed up the game by 1.5% per level.
 		function updateTimeScale(reset) {
 			// Error correction if sometime tries to use 0 as the scale.
 			if (time.scale <= 0) {
 				time.scale = 0.01;
 			}
-		
+
 			// Calculate the new scaleSpeed but if reset is set then use that value
 			// as the final scale speed, we use this to reset time back to normal on game end.
 			var scaleAmount = state.level * 0.015;
 			var scaleSpeed = (1 - scaleAmount) || reset;
-			
+
 			// This is about the point where it gets ridiculous, anything lower than this and it's
 			// basically impossible. Not even a Jedi Knight would be able to beat it at this point.
 			if (scaleSpeed <= 0.25) {
 				scaleSpeed = 0.25;
 			}
-				
+
 			// Update the values, notice how we never mutate the scale itself so we don't need a copy of it.
 			// We use the non-mutated times in our division.
 			state.time = {
@@ -762,7 +762,7 @@ $(document).ready(function() {
 				flashColor: (time.flashColor / time.scale) * scaleSpeed
 			};
 		}
-		
+
 		// Flash a color by adjusting its opacity.
 		function flashColor(index) {
 			$('#' + index).stop().animate({ opacity: 1 }, state.time.flashColor).animate({ opacity: 0.50 }, state.time.flashColor);
@@ -789,7 +789,7 @@ $(document).ready(function() {
 
 			// Clear and generate a new pattern.
 			state.pattern = [];
-			
+
 			// Generate numbers up to the max level.
 			for (var i = 0; i < state.levelMax; i++) {
 				state.pattern.push(generateRandomNumber());
@@ -800,7 +800,7 @@ $(document).ready(function() {
 		function generateRandomNumber() {
 			return Math.floor(state.mt.random() * 6);
 		}
-		
+
 		// Rotate the game background to a specific degree.
 		function setRotationDegree(degree) {
 			// General technique taken from: http://stackoverflow.com/a/3792085.
@@ -814,20 +814,20 @@ $(document).ready(function() {
 		// Convert an object to an array and return the array.
 		function objectToArray(obj) {
 			var arr = [];
-			
+
 			for (var k in obj) {
 				if (obj.hasOwnProperty(k)) {
 					arr.push(obj[k]);
 				}
 			}
-			
+
 			return arr;
 		}
-		
+
 		// Generate a nicely formatted date from the time of calling it.
 		function generateCleanDate() {
 			var ts = new Date();
-			
+
 			return digitToWordMonth(ts.getMonth() + 1) + ' '
 					+ ts.getDate() + ' '
 					+ ts.getFullYear() + ', '
@@ -835,7 +835,7 @@ $(document).ready(function() {
 					+ ts.getMinutes() + ':'
 					+ ts.getSeconds();
 		}
-		
+
 		// Convert a digit month to word month.
 		function digitToWordMonth(month) {
 			switch (month) {
@@ -877,7 +877,7 @@ $(document).ready(function() {
 				}
 				default: {
 					return '???';
-				}	
+				}
 			}
 		}
 
